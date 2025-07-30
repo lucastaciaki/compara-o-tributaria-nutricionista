@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação Financeira - Nutricionista</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            flex: 1;
+            min-width: 300px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-radius: 4px;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .comparison {
+            margin-top: 30px;
+        }
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .positive {
+            color: #27ae60;
+        }
+        .negative {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simulação Financeira para Nutricionista</h1>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Configurações</h2>
+            
+            <div class="input-group">
+                <label for="pacientes">Quantidade de pacientes por mês:</label>
+                <input type="number" id="pacientes" value="20" min="1">
+            </div>
+            
+            <div class="input-group">
+                <label for="valorConsulta">Valor da consulta (R$):</label>
+                <input type="number" id="valorConsulta" value="56" min="1" step="0.01">
+            </div>
+            
+            <div class="input-group">
+                <label for="regime">Regime tributário (se CNPJ):</label>
+                <select id="regime">
+                    <option value="6">Simples Nacional (6%)</option>
+                    <option value="15">Lucro Presumido (15%)</option>
+                </select>
+            </div>
+            
+            <button onclick="calcular()">Calcular</button>
+        </div>
+        
+        <div class="card">
+            <h2>Resultados</h2>
+            
+            <div class="result">
+                <h3>MEI</h3>
+                <p>Faturamento: R$ <span id="faturamentoMei" class="highlight">1.120,00</span></p>
+                <p>Despesas: R$ <span id="despesasMei" class="highlight">636,90</span></p>
+                <p>Líquido mensal: R$ <span id="liquidoMei" class="highlight">483,10</span></p>
+            </div>
+            
+            <div class="result">
+                <h3>CNPJ</h3>
+                <p>Faturamento: R$ <span id="faturamentoCnpj" class="highlight">1.120,00</span></p>
+                <p>Despesas: R$ <span id="despesasCnpj" class="highlight">334,18</span></p>
+                <p>Líquido mensal: R$ <span id="liquidoCnpj" class="highlight positive">785,82</span></p>
+            </div>
+            
+            <div class="result">
+                <h3>Comparação</h3>
+                <p>Diferença mensal: R$ <span id="diferenca" class="highlight positive">302,72</span></p>
+                <p>Investimento inicial CNPJ: R$ <span id="investimento" class="highlight">1.440,00</span></p>
+                <p>Tempo para retorno: <span id="retorno" class="highlight">5 meses</span></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="comparison">
+        <h2>Comparativo Visual</h2>
+        <div class="chart-container">
+            <canvas id="comparisonChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Análise Detalhada</h2>
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>MEI</th>
+                <th>CNPJ</th>
+                <th>Diferença</th>
+            </tr>
+            <tr>
+                <td>Faturamento</td>
+                <td>R$ <span id="fatMeiTab">1.120,00</span></td>
+                <td>R$ <span id="fatCnpjTab">1.120,00</span></td>
+                <td>R$ 0,00</td>
+            </tr>
+            <tr>
+                <td>Impostos/Taxas</td>
+                <td>R$ 76,90</td>
+                <td>R$ <span id="impostoCnpjTab">67,20</span></td>
+                <td class="positive">-R$ 9,70</td>
+            </tr>
+            <tr>
+                <td>Repasse/INSS</td>
+                <td>R$ 560,00</td>
+                <td>R$ 166,98</td>
+                <td class="positive">-R$ 393,02</td>
+            </tr>
+            <tr>
+                <td>Contador</td>
+                <td>R$ 0,00</td>
+                <td>R$ 100,00</td>
+                <td class="negative">+R$ 100,00</td>
+            </tr>
+            <tr>
+                <td><strong>Total Líquido</strong></td>
+                <td>R$ <span id="liqMeiTab">483,10</span></td>
+                <td>R$ <span id="liqCnpjTab">785,82</span></td>
+                <td class="positive">+R$ 302,72</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="card">
+        <h2>Recomendações</h2>
+        <ul>
+            <li>A opção com CNPJ proporciona maior lucro líquido mensal</li>
+            <li>O investimento inicial se paga em aproximadamente 5 meses</li>
+            <li>Com CNPJ você pode aumentar seu faturamento além do limite do MEI</li>
+            <li>Considere aumentar gradualmente o valor da consulta</li>
+        </ul>
+    </div>
+
+    <script>
+        // Inicializa o gráfico
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        const comparisonChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['MEI', 'CNPJ'],
+                datasets: [{
+                    label: 'Líquido Mensal (R$)',
+                    data: [483.10, 785.82],
+                    backgroundColor: [
+                        'rgba(52, 152, 219, 0.7)',
+                        'rgba(46, 204, 113, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(52, 152, 219, 1)',
+                        'rgba(46, 204, 113, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        function formatMoney(value) {
+            return value.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+\,)/g, '$1.');
+        }
+
+        function calcular() {
+            // Obter valores dos inputs
+            const pacientes = parseFloat(document.getElementById('pacientes').value);
+            const valorConsulta = parseFloat(document.getElementById('valorConsulta').value);
+            const aliquota = parseFloat(document.getElementById('regime').value) / 100;
+            
+            // Calcular valores MEI
+            const faturamentoMei = pacientes * valorConsulta;
+            const guiaMei = 76.90;
+            const repasseMei = faturamentoMei / 2;
+            const despesasMei = guiaMei + repasseMei;
+            const liquidoMei = faturamentoMei - despesasMei;
+            
+            // Calcular valores CNPJ
+            const faturamentoCnpj = pacientes * valorConsulta;
+            const simplesNacional = faturamentoCnpj * aliquota;
+            const inss = 166.98;
+            const contador = 100;
+            const despesasCnpj = simplesNacional + inss + contador;
+            const liquidoCnpj = faturamentoCnpj - despesasCnpj;
+            
+            // Calcular diferenças
+            const diferenca = liquidoCnpj - liquidoMei;
+            const investimento = 1440;
+            const mesesRetorno = Math.ceil(investimento / diferenca);
+            
+            // Atualizar valores na página
+            document.getElementById('faturamentoMei').textContent = formatMoney(faturamentoMei);
+            document.getElementById('despesasMei').textContent = formatMoney(despesasMei);
+            document.getElementById('liquidoMei').textContent = formatMoney(liquidoMei);
+            
+            document.getElementById('faturamentoCnpj').textContent = formatMoney(faturamentoCnpj);
+            document.getElementById('despesasCnpj').textContent = formatMoney(despesasCnpj);
+            document.getElementById('liquidoCnpj').textContent = formatMoney(liquidoCnpj);
+            
+            document.getElementById('diferenca').textContent = formatMoney(diferenca);
+            document.getElementById('investimento').textContent = formatMoney(investimento);
+            document.getElementById('retorno').textContent = mesesRetorno + (mesesRetorno === 1 ? " mês" : " meses");
+            
+            // Atualizar tabela
+            document.getElementById('fatMeiTab').textContent = formatMoney(faturamentoMei);
+            document.getElementById('fatCnpjTab').textContent = formatMoney(faturamentoCnpj);
+            document.getElementById('impostoCnpjTab').textContent = formatMoney(simplesNacional);
+            document.getElementById('liqMeiTab').textContent = formatMoney(liquidoMei);
+            document.getElementById('liqCnpjTab').textContent = formatMoney(liquidoCnpj);
+            
+            // Atualizar gráfico
+            comparisonChart.data.datasets[0].data = [liquidoMei, liquidoCnpj];
+            comparisonChart.update();
+            
+            // Atualizar classes de cor
+            document.getElementById('diferenca').className = diferenca >= 0 ? 'highlight positive' : 'highlight negative';
+            document.getElementById('liquidoCnpj').className = liquidoCnpj >= liquidoMei ? 'highlight positive' : 'highlight negative';
+        }
+
+        // Calcular inicialmente
+        calcular();
+    </script>
+</body>
+</html>
